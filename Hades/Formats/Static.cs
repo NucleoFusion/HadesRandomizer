@@ -45,6 +45,37 @@ public static class FormatRegistry
             twc.Launch();
         });
 
-        return new FormatEntry[] { new FormatEntry(sote3, sote3Vm), new FormatEntry(twc, twcVm) };
+        // Land Locked
+        var landLocked = new LandLocked();
+        var landLockedVm = new LandLockedViewModel { Title = landLocked.DisplayName };
+
+        landLockedVm.RandomizeCommand = new RelayCommand(() =>
+        {
+            landLocked.SquaresToGenerate = landLockedVm.SquaresToGenerate;
+            landLocked.JsonFilePath = landLockedVm.JsonFilePath;
+            landLocked.Exec(
+                baseSeed: landLockedVm.Seed,
+                statusCallback: status => landLockedVm.StatusText = status,
+                seedCallback: seed => landLockedVm.Seed = seed
+            );
+        });
+        landLockedVm.LaunchCommand = new RelayCommand(() =>
+        {
+            landLocked.Launch();
+        });
+        landLockedVm.BrowseJsonCommand = new RelayCommand(() =>
+        {
+            var dialog = new Microsoft.Win32.OpenFileDialog
+            {
+                Filter = "JSON files (*.json)|*.json|All files (*.*)|*.*",
+                CheckFileExists = true,
+            };
+            if (dialog.ShowDialog() == true)
+            {
+                landLockedVm.JsonFilePath = dialog.FileName;
+            }
+        });
+
+        return new FormatEntry[] { new FormatEntry(sote3, sote3Vm), new FormatEntry(twc, twcVm), new FormatEntry(landLocked, landLockedVm) };
     }
 }
