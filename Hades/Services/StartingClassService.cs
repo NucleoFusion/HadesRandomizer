@@ -41,6 +41,11 @@ public static class StartingClassService
     )
     {
         RandomizeAllStartingWeapons(editor, seed);
+        WriteStartingWeaponDescriptions(editor, formatId);
+    }
+
+    public static void WriteStartingWeaponDescriptions(ParamsEditor editor, string formatId)
+    {
         MenuBndEditorService? menuEditor = null;
         var candidates = new[]
         {
@@ -138,6 +143,24 @@ public static class StartingClassService
         );
     }
 
+    public static void RandomizeAllStartingWeaponsWieldable(ParamsEditor editor, string seed)
+    {
+        foreach (var className in ClassNames)
+        {
+            RandomizeStartingWeaponsWieldable(editor, className, seed + "_" + className);
+        }
+    }
+
+    public static void RandomizeAllStartingWeaponsWieldableWithDescriptions(
+        ParamsEditor editor,
+        string seed,
+        string modId
+    )
+    {
+        RandomizeAllStartingWeaponsWieldable(editor, seed);
+        WriteStartingWeaponDescriptions(editor, modId);
+    }
+
     public static int[] GetClassStats(ParamsEditor editor, int charaInitId)
     {
         return new[]
@@ -198,6 +221,120 @@ public static class StartingClassService
         return stats;
     }
 
+    public static void RandomizeStartingWeaponsWieldable(
+        ParamsEditor editor,
+        string className,
+        string seed
+    )
+    {
+        int charaInitId = GlobalConstants.CharaInitClassMap[className];
+        int[] buffed = GetClassStats(editor, charaInitId);
+
+        int wep_right_1 = editor.GetInitialEquipWepRight(charaInitId, 0);
+        int wep_right_2 = editor.GetInitialEquipWepRight2(charaInitId);
+        int wep_left_1 = editor.GetInitialEquipWepLeft(charaInitId, 0);
+        int wep_left_2 = editor.GetInitialEquipWepLeft2(charaInitId);
+
+        editor.SetInitialEquipWepLeft(
+            charaInitId,
+            0,
+            GetRandomStartingWeaponWieldable(editor, wep_left_1, seed + "_wep_left_1", buffed)
+        );
+        editor.SetInitialEquipWepLeft(
+            charaInitId,
+            1,
+            GetRandomStartingWeaponWieldable(editor, wep_left_2, seed + "_wep_left_2", buffed)
+        );
+        editor.SetInitialEquipWepRight(
+            charaInitId,
+            0,
+            GetRandomStartingWeaponWieldable(editor, wep_right_1, seed + "_wep_right_1", buffed)
+        );
+        editor.SetInitialEquipWepRight(
+            charaInitId,
+            1,
+            GetRandomStartingWeaponWieldable(editor, wep_right_2, seed + "_wep_right_2", buffed)
+        );
+    }
+
+    public static int GetRandomStartingWeaponWieldable(
+        ParamsEditor editor,
+        int weaponId,
+        string seed,
+        int[] buffedStats
+    )
+    {
+        if (weaponId == -1)
+        {
+            return -1;
+        }
+
+        // Staff
+        if (WeaponUtils.IsStaff(weaponId))
+        {
+            return PickWieldableWeapon(editor, WeaponUtils.StaffIds, seed + "_staff", buffedStats);
+        }
+
+        // Seal
+        if (WeaponUtils.IsSeal(weaponId))
+        {
+            return PickWieldableWeapon(editor, WeaponUtils.SealIds, seed + "_seal", buffedStats);
+        }
+
+        return PickWieldableWeapon(
+            editor,
+            Weapons.GetAllSmithingWeapons().Select(w => w.Id).ToList(),
+            seed,
+            buffedStats
+        );
+    }
+
+    private static int PickWieldableWeapon(
+        ParamsEditor editor,
+        IList<int> pool,
+        string seed,
+        int[] buffedStats
+    )
+    {
+        var wieldable = pool.Where(id => GetWeaponDeficit(editor, id, buffedStats) == 0).ToList();
+        if (wieldable.Count > 0)
+        {
+            return wieldable[RandoUtils.GetRandomNumber(seed, wieldable.Count)];
+        }
+
+        // Fallback: least deficit, ties broken by seed so it stays deterministic
+        int min = pool.Min(id => GetWeaponDeficit(editor, id, buffedStats));
+        var least = pool.Where(id => GetWeaponDeficit(editor, id, buffedStats) == min).ToList();
+        return least[RandoUtils.GetRandomNumber(seed + "_fallback", least.Count)];
+    }
+
+    private static int GetWeaponDeficit(ParamsEditor editor, int weaponId, int[] buffedStats)
+    {
+        int deficit = 0;
+        for (int j = 0; j < 5; j++)
+        {
+            int req;
+            try
+            {
+                req = editor.GetEquipWeaponProperStat(weaponId, j);
+            }
+            catch
+            {
+                continue;
+            }
+            if (req == 0)
+                continue;
+            if (j == 0)
+            {
+                int num = req * 2;
+                req = num % 3 > 0 ? num / 3 + 1 : num / 3;
+            }
+            if (req > buffedStats[j])
+                deficit += req - buffedStats[j];
+        }
+        return deficit;
+    }
+
     public static int GetRandomStartingWeapon(int weaponId, string seed)
     {
         if (weaponId == -1)
@@ -245,7 +382,6 @@ public static class StartingClassService
             if (stats.RuneLevel is short level)
                 editor.SetInitialRuneLevel(charaInitId, level);
         }
-
     }
 
     private static readonly System.Collections.Generic.HashSet<WeaponCategory> NoTwoHandBonusCategories =

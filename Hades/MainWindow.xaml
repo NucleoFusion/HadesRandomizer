@@ -20,6 +20,11 @@
         <DataTemplate DataType="{x:Type viewModels:TwoWorldsCollideViewModel}">
             <views:TwoWorldsCollideView />
         </DataTemplate>
+        
+        <!-- ViewModel -> View -->
+        <DataTemplate DataType="{x:Type viewModels:LandLockedViewModel}">
+            <views:LandLockedView />
+        </DataTemplate>
 
     </Window.Resources>
 

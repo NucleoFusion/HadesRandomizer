@@ -64,7 +64,7 @@ class ShowdownOfTheErdtree3 : IRandomizerFormat
 
         editor.WriteToRegulationPath(regulationFilepath);
 
-        statusCallback?.Invoke("successfully randomized!");
+        statusCallback?.Invoke("Successfully Randomized: " + baseSeed);
     }
 
     public void Launch()
@@ -162,8 +162,16 @@ class ShowdownOfTheErdtree3 : IRandomizerFormat
         randomizeClass(editor, GlobalConstants.CharaInitClassMap["Samurai"], results.Samurai);
         randomizeClass(editor, GlobalConstants.CharaInitClassMap["Prisoner"], results.Prisoner);
         randomizeClass(editor, GlobalConstants.CharaInitClassMap["Wretch"], results.Wretch);
-        randomizeClass(editor, GlobalConstants.CharaInitClassMap["Heavy Knight"], results.HeavyKnight);
-        randomizeClass(editor, GlobalConstants.CharaInitClassMap["Idus Knight"], results.IdusKnight);
+        randomizeClass(
+            editor,
+            GlobalConstants.CharaInitClassMap["Heavy Knight"],
+            results.HeavyKnight
+        );
+        randomizeClass(
+            editor,
+            GlobalConstants.CharaInitClassMap["Idus Knight"],
+            results.IdusKnight
+        );
     }
 
     private void randomizeClass(ParamsEditor editor, int classId, ArmorResults result)

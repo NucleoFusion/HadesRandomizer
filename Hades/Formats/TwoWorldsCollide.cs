@@ -19,7 +19,6 @@ class TwoWorldsCollide : IRandomizerFormat
         IRandomizerOptions? options = null
     )
     {
-
         if (baseSeed == "")
         {
             var seed = Utils.RandoUtils.GenerateRandomString();
@@ -91,10 +90,7 @@ class TwoWorldsCollide : IRandomizerFormat
         // Spells
         var worldSpells = Spells.WorldSpells;
         var remSpells = Spells.RemembranceSpells;
-        var spellGroups = worldSpells
-            .GroupBy(s => s.Type)
-            .OrderBy(g => g.Key.ToString())
-            .ToList();
+        var spellGroups = worldSpells.GroupBy(s => s.Type).OrderBy(g => g.Key.ToString()).ToList();
         foreach (var group in spellGroups)
         {
             var spellType = group.Key;
@@ -155,7 +151,7 @@ class TwoWorldsCollide : IRandomizerFormat
 
         editor.WriteToRegulationPath(regulationFilepath);
 
-        statusCallback?.Invoke("successfully randomized!");
+        statusCallback?.Invoke("Successfully Randomized: " + baseSeed);
     }
 
     public void Launch()
@@ -234,7 +230,9 @@ class TwoWorldsCollide : IRandomizerFormat
                 if (stat >= min && stat <= max)
                     return stat;
                 if (attempt >= maxAttempts)
-                    throw new RandomizerException("Failed to generate stats, attempt maximum reached.");
+                    throw new RandomizerException(
+                        "Failed to generate stats, attempt maximum reached."
+                    );
             }
         }
 
@@ -247,7 +245,6 @@ class TwoWorldsCollide : IRandomizerFormat
 
         string[] keys = { "vigor", "mind", "end", "str", "dex", "int", "fai", "arc" };
         int[] stats = new int[keys.Length];
-
 
         for (var attempt = 0; ; attempt++)
         {
